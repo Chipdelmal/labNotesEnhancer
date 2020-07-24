@@ -1,15 +1,15 @@
 
 import re
 import PIL
+import img2pdf
 from glob import glob
-from PIL import Image, ImageEnhance, ImageOps
+from PIL import Image, ImageEnhance
 
 
-(PATH_IN, PATH_OUT) = ('./Notebooks/Volume04/', './out/')
-(width, height) = (1680, 1200)
+(PATH_IN, VOL, PATH_OUT) = ('./notebooks/', 'Volume04', './out/')
+(width, height) = (1680/1, 1200/1)
 
-page = 'Scan 2.jpeg'
-files = glob(PATH_IN+'Scan *')
+files = glob(PATH_IN+VOL+'/Scan *')
 files.sort(key=lambda f: int(re.sub('\D', '', f)))
 numFiles = str(len(files))
 
@@ -24,5 +24,11 @@ for (i, page) in enumerate(files):
     im = enhancer.enhance(.85)
     enhancer = ImageEnhance.Contrast(im)
     im = enhancer.enhance(1.25)
-    im = im.resize((width, height))
-    im.save(PATH_OUT+str(i).zfill(len(numFiles)+1)+'.jpg', 'JPEG')
+    im = im.resize((int(width), int(height)))
+    im.save(PATH_OUT+str(i+1).zfill(len(numFiles)+1)+'.jpg', 'JPEG')
+
+
+files = glob(PATH_OUT+'*.jpg')
+files.sort(key=lambda f: int(re.sub('\D', '', f)))
+with open(VOL+'.pdf', "wb") as f:
+    f.write(img2pdf.convert([i for i in files]))
