@@ -1,19 +1,42 @@
 
+import os
 import re
+import sys
 import PIL
 import img2pdf
 from glob import glob
 from PIL import Image, ImageEnhance
 
-
-(PATH_IN, VOL, PATH_OUT) = ('./notebooks/', 'Volume04', './out/')
+###############################################################################
+# This script goes through the files stored in the './notebooks/argv1' folder,
+#   processes them to make the scanned images clearer, and stores the output
+#   in PDF format.
+# -----------------------------------------------------------------------------
+#   python main.py SUBFOLDER DeleteFiles FilesPattern
+#   python main.py Volume01 OVW Scan
+###############################################################################
+(PTI, VOL, PTO) = ('./notebooks/', sys.argv[1], './out/')
+(OVW, PTRN) = (sys.argv[2], sys.argv[3])
 (width, height) = (1680/1, 1200/1)
 
-files = glob(PATH_IN+VOL+'/Scan *')
+# Delete existing files in output directory
+if OVW == 'OVW':
+    delFiles = glob(PTO+'/*')
+    for f in delFiles:
+        os.remove(f)
+
+# Read filenames in the input directory
+files = glob(PTI+VOL+'/'+PTRN+'*')
 files.sort(key=lambda f: int(re.sub('\D', '', f)))
 numFiles = str(len(files))
+fPadNum = len(numFiles)
+print('Detected {} files...'.format(numFiles))
 
+# Go through the images in the folder
 for (i, page) in enumerate(files):
+    print('* Processing ({}/{})'.format(
+            str(i+1).zfill(fPadNum), numFiles.zfill(fPadNum)
+        ), end='\r')
     im = Image.open(page)
     enhancer = ImageEnhance.Color(im)
     im = enhancer.enhance(.5)
@@ -25,10 +48,21 @@ for (i, page) in enumerate(files):
     enhancer = ImageEnhance.Contrast(im)
     im = enhancer.enhance(1.25)
     im = im.resize((int(width), int(height)))
-    im.save(PATH_OUT+str(i+1).zfill(len(numFiles)+1)+'.jpg', 'JPEG')
+    im.save(PTO+str(i+1).zfill(fPadNum)+'.jpg', 'JPEG')
+print('Processed ({}/{})       '.format(
+        numFiles.zfill(fPadNum), numFiles.zfill(fPadNum)
+    ), end='\n')
 
-
-files = glob(PATH_OUT+'*.jpg')
+# Create PDF from the images
+print('Processing PDF...')
+files = glob(PTO+'*.jpg')
 files.sort(key=lambda f: int(re.sub('\D', '', f)))
 with open(VOL+'.pdf', "wb") as f:
     f.write(img2pdf.convert([i for i in files]))
+
+# Delete processed files in output directory
+if OVW == 'OVW':
+    delFiles = glob(PTO+'/*')
+    for f in delFiles:
+        os.remove(f)
+print('Finished!')
