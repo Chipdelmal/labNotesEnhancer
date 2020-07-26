@@ -15,7 +15,7 @@ python main.py Volume01 OVW Scan
 
 <img src="./media/Scan 9.jpeg" style="width:100%;">
 
-Gets transformed into (customizable):
+Gets transformed into:
 
 <img src="./media/10.jpg" style="width:100%;">
 
